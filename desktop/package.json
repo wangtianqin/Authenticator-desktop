@@ -1,0 +1,104 @@
+{
+  "name": "authenticator-desktop",
+  "productName": "Authenticator Desktop",
+  "version": "1.0.0",
+  "description": "A secure, offline two-factor authenticator for Windows",
+  "main": "electron/main.cjs",
+  "author": "Authenticator Desktop",
+  "license": "MIT",
+  "private": true,
+  "homepage": "https://github.com/wangtianqin/Authenticator-desktop/tree/dev/desktop",
+  "scripts": {
+    "dev": "vite --host 127.0.0.1",
+    "build:renderer": "vite build",
+    "start": "electron .",
+    "test": "node tests/core.test.mjs",
+    "smoke": "node tests/smoke.mjs",
+    "dist:dir": "vite build && electron-builder --win --dir",
+    "dist": "vite build && electron-builder --win nsis portable"
+  },
+  "dependencies": {
+    "hash-wasm": "^4.13.0",
+    "jsqr": "^1.4.0",
+    "qrcode-generator": "^1.4.4",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1"
+  },
+  "devDependencies": {
+    "electron": "^38.2.0",
+    "electron-builder": "^26.0.12",
+    "vite": "^7.1.0"
+  },
+  "build": {
+    "appId": "cc.authenticator.desktop",
+    "productName": "Authenticator Desktop",
+    "copyright": "Copyright © 2026 Authenticator Desktop",
+    "asar": true,
+    "compression": "maximum",
+    "npmRebuild": false,
+    "directories": {
+      "output": "release",
+      "buildResources": "build"
+    },
+    "files": [
+      "dist/**/*",
+      "electron/**/*",
+      "assets/**/*",
+      "node_modules/hash-wasm/package.json",
+      "node_modules/hash-wasm/LICENSE",
+      "node_modules/hash-wasm/dist/index.umd.js",
+      "package.json"
+    ],
+    "extraResources": [
+      {
+        "from": "LICENSE.txt",
+        "to": "LICENSE.txt"
+      },
+      {
+        "from": "THIRD_PARTY_NOTICES.md",
+        "to": "THIRD_PARTY_NOTICES.md"
+      },
+      {
+        "from": "licenses",
+        "to": "licenses"
+      }
+    ],
+    "win": {
+      "icon": "build/icon.ico",
+      "requestedExecutionLevel": "asInvoker",
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        },
+        {
+          "target": "portable",
+          "arch": [
+            "x64"
+          ]
+        }
+      ]
+    },
+    "nsis": {
+      "artifactName": "Authenticator-Desktop-Setup-${version}.${ext}",
+      "oneClick": false,
+      "perMachine": false,
+      "allowElevation": true,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "验证器",
+      "installerIcon": "build/icon.ico",
+      "uninstallerIcon": "build/icon.ico",
+      "installerHeaderIcon": "build/icon.ico",
+      "license": "LICENSE.txt",
+      "deleteAppDataOnUninstall": false
+    },
+    "portable": {
+      "artifactName": "Authenticator-Desktop-${version}-Portable.${ext}",
+      "requestExecutionLevel": "user"
+    }
+  }
+}

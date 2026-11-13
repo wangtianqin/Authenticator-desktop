@@ -2,6 +2,8 @@
 
 > Authenticator generates 2-Step Verification codes in your browser.
 
+> **Windows desktop edition:** This fork also contains the source of an independent, offline Windows desktop authenticator in [`desktop/`](desktop/). It supports TOTP/HOTP/Steam, an encrypted local vault, QR scanning, groups and backup import/export. See [`desktop/README.md`](desktop/README.md). The original browser-extension source remains at the repository root.
+
 ## Available for Chrome, Firefox, and Microsoft Edge
 
 [<img src="https://raw.githubusercontent.com/wiki/Authenticator-Extension/Authenticator/readme-images/chrome-web-store.png" title="Chrome Web Store" width="170" height="48" />](https://chrome.google.com/webstore/detail/authenticator/bhghoamapcdpbohphigoooaddinpkbai) [<img src="https://raw.githubusercontent.com/wiki/Authenticator-Extension/Authenticator/readme-images/firefox-add-ons.png" title="Firefox Add-ons" width="170" height="48" />](https://addons.mozilla.org/en-US/firefox/addon/auth-helper?src=external-github) [<img src="https://raw.githubusercontent.com/wiki/Authenticator-Extension/Authenticator/readme-images/microsoft-store.png" title="Microsoft Store" height="48">](https://microsoftedge.microsoft.com/addons/detail/ocglkepbibnalbgmbachknglpdipeoio)
