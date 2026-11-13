@@ -1,77 +1,104 @@
 {
-  "name": "authenticator-extension",
-  "version": "0.1.0",
-  "description": "Authenticator generates 2-Step Verification codes in your browser.",
-  "scripts": {
-    "compile": "bash scripts/build.sh firefox",
-    "dev:chrome": "npm run pretest && webpack --config ./webpack.watch.js",
-    "chrome": "bash scripts/build.sh chrome",
-    "firefox": "bash scripts/build.sh firefox",
-    "edge": "bash scripts/build.sh edge",
-    "prod": "bash scripts/build.sh prod",
-    "pretest": "bash scripts/build.sh test",
-    "test": "node scripts/test-runner.js"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/Authenticator-Extension/Authenticator.git"
-  },
-  "author": "Authenticator Extension",
+  "name": "authenticator-desktop",
+  "productName": "Authenticator Desktop",
+  "version": "1.0.0",
+  "description": "A secure, offline two-factor authenticator for Windows",
+  "main": "electron/main.cjs",
+  "author": "Authenticator Desktop",
   "license": "MIT",
-  "bugs": {
-    "url": "https://github.com/Authenticator-Extension/Authenticator/issues"
-  },
-  "homepage": "https://github.com/Authenticator-Extension/Authenticator#readme",
-  "devDependencies": {
-    "@types/argon2-browser": "^1.18.1",
-    "@types/chai": "^4.2.14",
-    "@types/chrome": "^0.0.266",
-    "@types/crypto-js": "^4.1.1",
-    "@types/mocha": "^10.0.6",
-    "@types/sinon": "^17.0.2",
-    "@types/sinon-chai": "^3.2.12",
-    "@types/sinon-chrome": "^2.2.10",
-    "@typescript-eslint/eslint-plugin": "^7.15.0",
-    "@typescript-eslint/parser": "^7.15.0",
-    "@vue/test-utils": "^1.1.1",
-    "base64-loader": "^1.0.0",
-    "buffer": "^6.0.3",
-    "chai": "^4.2.0",
-    "crypto-js": "^4.1.1",
-    "eslint": "^8.56.0",
-    "fork-ts-checker-webpack-plugin": "^6.5.3",
-    "lodash": "^4.17.21",
-    "mocha": "^10.2.0",
-    "npm-license-generator": "^2.0.0",
-    "nyc": "^15.1.0",
-    "prettier": "2.2.1",
-    "process": "^0.11.10",
-    "puppeteer": "^22.11.2",
-    "sass": "^1.26.11",
-    "sinon": "^17.0.1",
-    "sinon-chai": "^3.7.0",
-    "sinon-chrome": "^3.0.1",
-    "stream-browserify": "^3.0.0",
-    "ts-loader": "^9.0.0",
-    "typescript": "^5.0.0",
-    "url-loader": "^4.0.0",
-    "util": "^0.12.5",
-    "vue-loader": "^15.10.1",
-    "vue-svg-loader": "^0.16.0",
-    "vue-template-compiler": "^2.7.16",
-    "webpack": "^5.94.0",
-    "webpack-cli": "^5.0.0",
-    "webpack-merge": "^5.0.0"
+  "private": true,
+  "homepage": "https://github.com/wangtianqin/Authenticator-desktop",
+  "scripts": {
+    "dev": "vite --host 127.0.0.1",
+    "build:renderer": "vite build",
+    "start": "electron .",
+    "test": "node tests/core.test.mjs",
+    "smoke": "node tests/smoke.mjs",
+    "dist:dir": "vite build && electron-builder --win --dir",
+    "dist": "vite build && electron-builder --win nsis portable"
   },
   "dependencies": {
-    "@types/lodash": "^4.14.166",
-    "argon2-browser": "^1.18.0",
-    "jsqr": "^1.3.1",
-    "node-gost-crypto": "^1.0.2",
+    "hash-wasm": "^4.13.0",
+    "jsqr": "^1.4.0",
     "qrcode-generator": "^1.4.4",
-    "qrcode-reader": "^1.0.4",
-    "vue": "^2.7.16",
-    "vue2-dragula": "^2.5.4",
-    "vuex": "^3.4.0"
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1"
+  },
+  "devDependencies": {
+    "electron": "^38.2.0",
+    "electron-builder": "^26.0.12",
+    "vite": "^7.1.0"
+  },
+  "build": {
+    "appId": "cc.authenticator.desktop",
+    "productName": "Authenticator Desktop",
+    "copyright": "Copyright © 2026 Authenticator Desktop",
+    "asar": true,
+    "compression": "maximum",
+    "npmRebuild": false,
+    "directories": {
+      "output": "release",
+      "buildResources": "build"
+    },
+    "files": [
+      "dist/**/*",
+      "electron/**/*",
+      "assets/**/*",
+      "node_modules/hash-wasm/package.json",
+      "node_modules/hash-wasm/LICENSE",
+      "node_modules/hash-wasm/dist/index.umd.js",
+      "package.json"
+    ],
+    "extraResources": [
+      {
+        "from": "LICENSE.txt",
+        "to": "LICENSE.txt"
+      },
+      {
+        "from": "THIRD_PARTY_NOTICES.md",
+        "to": "THIRD_PARTY_NOTICES.md"
+      },
+      {
+        "from": "licenses",
+        "to": "licenses"
+      }
+    ],
+    "win": {
+      "icon": "build/icon.ico",
+      "requestedExecutionLevel": "asInvoker",
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        },
+        {
+          "target": "portable",
+          "arch": [
+            "x64"
+          ]
+        }
+      ]
+    },
+    "nsis": {
+      "artifactName": "Authenticator-Desktop-Setup-${version}.${ext}",
+      "oneClick": false,
+      "perMachine": false,
+      "allowElevation": true,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "验证器",
+      "installerIcon": "build/icon.ico",
+      "uninstallerIcon": "build/icon.ico",
+      "installerHeaderIcon": "build/icon.ico",
+      "license": "LICENSE.txt",
+      "deleteAppDataOnUninstall": false
+    },
+    "portable": {
+      "artifactName": "Authenticator-Desktop-${version}-Portable.${ext}",
+      "requestExecutionLevel": "user"
+    }
   }
 }
