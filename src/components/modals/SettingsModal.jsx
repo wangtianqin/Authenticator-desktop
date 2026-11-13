@@ -142,7 +142,7 @@ export default function SettingsModal({
       onSecurityChanged?.(result);
       setConvertOpen(false);
       setConvertPassword("");
-      toast("已改用 Windows 设备保护", "success");
+      toast("无密码进入已开启", "success");
     } catch (error) {
       setModeError(error.message || "无法切换保护方式。");
     } finally {
@@ -169,7 +169,7 @@ export default function SettingsModal({
       setEnableOpen(false);
       setEnablePassword("");
       setEnableConfirm("");
-      toast("主密码保护已启用，下次启动时需要解锁", "success");
+      toast("无密码进入已关闭，下次启动需要输入主密码", "success");
     } catch (error) {
       setModeError(error.message || "无法启用主密码。");
     } finally {
@@ -179,7 +179,7 @@ export default function SettingsModal({
 
   const newPasswordValid = !validatePassword(newPassword) && newPassword === confirmPassword;
   const heading = {
-    security: { title: "安全与锁定", description: "控制保险库的保护方式和自动锁定行为。" },
+    security: { title: "安全与锁定", description: "控制无密码进入、主密码和自动锁定行为。" },
     appearance: { title: "外观", description: "让验证器融入你的桌面。" },
     data: { title: "数据与备份", description: "导入、导出并管理本机上的保险库数据。" },
     about: { title: "关于 Authenticator Desktop", description: "独立的 Windows 桌面验证器。" },
@@ -231,15 +231,15 @@ export default function SettingsModal({
                   </div>
                   <div className="security-overview-copy">
                     <div className="security-overview-title">
-                      {mode === "password" ? "主密码保护" : "Windows 设备保护"}
+                      {mode === "password" ? "主密码保护" : "Windows 数据保护"}
                       <Badge tone={mode === "password" ? "success" : "info"} icon="check">
-                        已启用
+                        {mode === "password" ? "已启用" : "无密码进入"}
                       </Badge>
                     </div>
                     <p>
                       {mode === "password"
                         ? "保险库使用 AES-256-GCM 加密。启动、解锁和自动锁定时都需要主密码。"
-                        : "保险库由 Windows DPAPI 加密并绑定当前 Windows 用户，无需输入密码。"}
+                        : "已开启无密码进入。启动时自动使用当前 Windows 用户解密保险库，不再要求输入主密码。"}
                     </p>
                   </div>
                   {mode === "password" ? (
@@ -252,41 +252,191 @@ export default function SettingsModal({
 
               <section className="settings-section">
                 <div className="settings-section-heading">
+                  <h4>无密码进入</h4>
+                  <p>使用 Windows 数据保护代替主密码，启动验证器时直接进入。</p>
+                </div>
+                <div className={`passwordless-option ${mode === "device" ? "is-enabled" : ""}`}>
+                  <Switch
+                    checked={mode === "device"}
+                    onChange={(enabled) => {
+                      setModeError("");
+                      if (enabled) {
+                        setEnableOpen(false);
+                        setConvertOpen(true);
+                      } else {
+                        setConvertOpen(false);
+                        setEnableOpen(true);
+                      }
+                    }}
+                    label="启动时无需输入主密码"
+                    description={
+                      mode === "device"
+                        ? "已开启。验证器会使用当前 Windows 用户的数据保护自动解密。"
+                        : "未开启。启动或锁定时仍需要主密码。"
+                    }
+                    disabled={modeBusy}
+                  />
+                </div>
+                {mode === "device" ? (
+                  <p className="settings-hint">
+                    无密码进入不会降低保险库的静态加密强度，但任何能登录此 Windows 账户的人都可以直接打开验证器。
+                  </p>
+                ) : null}
+
+                {mode === "password" && convertOpen ? (
+                  <form className="inline-conversion" onSubmit={removePassword}>
+                    <InlineNotice tone="warning" icon="warning" title="开启前请确认">
+                      开启无密码进入后，任何能登录此 Windows 账户的人都可以直接打开验证器。请确保你的
+                      Windows 账户本身有登录密码或 Windows Hello 保护。
+                    </InlineNotice>
+                    <Field label="输入当前主密码以确认" htmlFor="convert-password">
+                      <PasswordInput
+                        id="convert-password"
+                        value={convertPassword}
+                        onChange={(event) => {
+                          setConvertPassword(event.target.value);
+                          setModeError("");
+                        }}
+                        placeholder="当前主密码"
+                        autoComplete="current-password"
+                        data-autofocus
+                      />
+                    </Field>
+                    {modeError ? <p className="form-error">{modeError}</p> : null}
+                    <div className="inline-form-actions">
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => {
+                          setConvertOpen(false);
+                          setConvertPassword("");
+                          setModeError("");
+                        }}
+                        disabled={modeBusy}
+                      >
+                        取消
+                      </Button>
+                      <Button
+                        type="submit"
+                        variant="primary"
+                        size="sm"
+                        icon={<Icon name="unlock" size={15} />}
+                        loading={modeBusy}
+                        disabled={!convertPassword}
+                      >
+                        开启无密码进入
+                      </Button>
+                    </div>
+                  </form>
+                ) : null}
+
+                {mode === "device" && enableOpen ? (
+                  <form className="inline-conversion" onSubmit={submitEnablePassword}>
+                    <InlineNotice tone="info" icon="lock" title="设置主密码以关闭无密码进入">
+                      关闭后，每次启动和自动锁定后都需要输入新的主密码。保险库会立即改用主密码重新加密。
+                    </InlineNotice>
+                    <Field label="新主密码" htmlFor="enable-password">
+                      <PasswordInput
+                        id="enable-password"
+                        value={enablePassword}
+                        onChange={(event) => {
+                          setEnablePassword(event.target.value);
+                          setModeError("");
+                        }}
+                        placeholder="至少 8 个字符"
+                        autoComplete="new-password"
+                        data-autofocus
+                      />
+                      <PasswordStrength password={enablePassword} />
+                    </Field>
+                    <Field label="确认主密码" htmlFor="enable-confirm">
+                      <PasswordInput
+                        id="enable-confirm"
+                        value={enableConfirm}
+                        onChange={(event) => {
+                          setEnableConfirm(event.target.value);
+                          setModeError("");
+                        }}
+                        placeholder="再次输入"
+                        autoComplete="new-password"
+                      />
+                    </Field>
+                    {modeError ? <p className="form-error">{modeError}</p> : null}
+                    <div className="inline-form-actions">
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => {
+                          setEnableOpen(false);
+                          setEnablePassword("");
+                          setEnableConfirm("");
+                          setModeError("");
+                        }}
+                        disabled={modeBusy}
+                      >
+                        取消
+                      </Button>
+                      <Button
+                        type="submit"
+                        variant="primary"
+                        size="sm"
+                        icon={<Icon name="lock" size={15} />}
+                        loading={modeBusy}
+                        disabled={
+                          Boolean(validatePassword(enablePassword)) ||
+                          enablePassword !== enableConfirm
+                        }
+                      >
+                        设置主密码并关闭
+                      </Button>
+                    </div>
+                  </form>
+                ) : null}
+              </section>
+
+              <section className="settings-section">
+                <div className="settings-section-heading">
                   <h4>自动锁定</h4>
                   <p>在一段时间无操作后隐藏验证码并要求重新解锁。</p>
                 </div>
-                <div className="setting-row">
-                  <div className="setting-row-copy">
-                    <strong>锁定等待时间</strong>
-                    <span>{relativeLockTime(settings.autoLockMinutes)}</span>
-                  </div>
-                  <Select
-                    value={settings.autoLockMinutes}
-                    onChange={(event) =>
-                      updateSetting({ autoLockMinutes: Number(event.target.value) }, "autoLock")
-                    }
-                    disabled={mode !== "password" || saving === "autoLock"}
-                    className="setting-select"
-                  >
-                    <option value={0}>不自动锁定</option>
-                    <option value={1}>1 分钟</option>
-                    <option value={5}>5 分钟</option>
-                    <option value={15}>15 分钟</option>
-                    <option value={30}>30 分钟</option>
-                    <option value={60}>1 小时</option>
-                    <option value={120}>2 小时</option>
-                  </Select>
-                </div>
-                <Switch
-                  checked={settings.lockOnMinimize}
-                  onChange={(value) => updateSetting({ lockOnMinimize: value }, "minimize")}
-                  label="最小化窗口时锁定"
-                  description="窗口最小化或隐藏后立即清除解锁状态。"
-                  disabled={mode !== "password"}
-                />
-                {mode !== "password" ? (
-                  <p className="settings-hint">设置主密码后即可使用自动锁定。</p>
-                ) : null}
+                {mode === "password" ? (
+                  <>
+                    <div className="setting-row">
+                      <div className="setting-row-copy">
+                        <strong>锁定等待时间</strong>
+                        <span>{relativeLockTime(settings.autoLockMinutes)}</span>
+                      </div>
+                      <Select
+                        value={settings.autoLockMinutes}
+                        onChange={(event) =>
+                          updateSetting({ autoLockMinutes: Number(event.target.value) }, "autoLock")
+                        }
+                        disabled={saving === "autoLock"}
+                        className="setting-select"
+                      >
+                        <option value={0}>不自动锁定</option>
+                        <option value={1}>1 分钟</option>
+                        <option value={5}>5 分钟</option>
+                        <option value={15}>15 分钟</option>
+                        <option value={30}>30 分钟</option>
+                        <option value={60}>1 小时</option>
+                        <option value={120}>2 小时</option>
+                      </Select>
+                    </div>
+                    <Switch
+                      checked={settings.lockOnMinimize}
+                      onChange={(value) => updateSetting({ lockOnMinimize: value }, "minimize")}
+                      label="最小化窗口时锁定"
+                      description="窗口最小化或隐藏后立即清除解锁状态。"
+                    />
+                  </>
+                ) : (
+                  <InlineNotice tone="neutral" icon="unlock">
+                    无密码进入模式下自动锁定已停用。关闭无密码进入并设置主密码后即可重新配置。
+                  </InlineNotice>
+                )}
               </section>
 
               <section className="settings-section">
@@ -390,116 +540,7 @@ export default function SettingsModal({
                 </section>
               ) : null}
 
-              <section className="settings-section">
-                <div className="settings-section-heading">
-                  <h4>保护方式</h4>
-                  <p>
-                    {mode === "password"
-                      ? "如果不需要每次输入密码，可以改用 Windows 设备保护。"
-                      : "设置主密码后，应用启动或自动锁定时需要解锁。"}
-                  </p>
-                </div>
-                {mode === "password" ? (
-                  <>
-                    <Button
-                      variant="secondary"
-                      size="sm"
-                      icon={<Icon name="shield" size={15} />}
-                      onClick={() => {
-                        setConvertOpen((value) => !value);
-                        setModeError("");
-                      }}
-                    >
-                      {convertOpen ? "取消" : "改为 Windows 设备保护"}
-                    </Button>
-                    {convertOpen ? (
-                      <form className="inline-conversion" onSubmit={removePassword}>
-                        <InlineNotice tone="warning" icon="warning" title="安全性会降低">
-                          Windows 设备保护不要求输入密码。任何能登录此 Windows 账户的人都可以打开验证器。
-                        </InlineNotice>
-                        <Field label="输入当前主密码以确认" htmlFor="convert-password">
-                          <PasswordInput
-                            id="convert-password"
-                            value={convertPassword}
-                            onChange={(event) => {
-                              setConvertPassword(event.target.value);
-                              setModeError("");
-                            }}
-                            placeholder="当前主密码"
-                            autoComplete="current-password"
-                          />
-                        </Field>
-                        {modeError ? <p className="form-error">{modeError}</p> : null}
-                        <Button
-                          type="submit"
-                          variant="danger"
-                          size="sm"
-                          loading={modeBusy}
-                          disabled={!convertPassword}
-                        >
-                          确认切换
-                        </Button>
-                      </form>
-                    ) : null}
-                  </>
-                ) : (
-                  <>
-                    <Button
-                      variant="primary"
-                      size="sm"
-                      icon={<Icon name="lock" size={15} />}
-                      onClick={() => {
-                        setEnableOpen((value) => !value);
-                        setModeError("");
-                      }}
-                    >
-                      {enableOpen ? "取消" : "设置主密码"}
-                    </Button>
-                    {enableOpen ? (
-                      <form className="inline-conversion" onSubmit={submitEnablePassword}>
-                        <Field label="新主密码" htmlFor="enable-password">
-                          <PasswordInput
-                            id="enable-password"
-                            value={enablePassword}
-                            onChange={(event) => {
-                              setEnablePassword(event.target.value);
-                              setModeError("");
-                            }}
-                            placeholder="至少 8 个字符"
-                            autoComplete="new-password"
-                          />
-                          <PasswordStrength password={enablePassword} />
-                        </Field>
-                        <Field label="确认主密码" htmlFor="enable-confirm">
-                          <PasswordInput
-                            id="enable-confirm"
-                            value={enableConfirm}
-                            onChange={(event) => {
-                              setEnableConfirm(event.target.value);
-                              setModeError("");
-                            }}
-                            placeholder="再次输入"
-                            autoComplete="new-password"
-                          />
-                        </Field>
-                        {modeError ? <p className="form-error">{modeError}</p> : null}
-                        <Button
-                          type="submit"
-                          variant="primary"
-                          size="sm"
-                          loading={modeBusy}
-                          disabled={
-                            Boolean(validatePassword(enablePassword)) ||
-                            enablePassword !== enableConfirm
-                          }
-                        >
-                          启用主密码
-                        </Button>
-                      </form>
-                    ) : null}
-                  </>
-                )}
-              </section>
+
             </div>
           ) : null}
 

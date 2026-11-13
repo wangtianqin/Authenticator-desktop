@@ -228,9 +228,12 @@ export function SetupScreen({ state, onComplete }) {
                   <Icon name="shield" size={19} />
                 </span>
                 <span className="mode-copy">
-                  <span className="mode-title">Windows 设备保护</span>
+                  <span className="mode-title">
+                    Windows 设备保护
+                    <span className="recommend-badge">无密码</span>
+                  </span>
                   <span className="mode-description">
-                    无需密码，由 Windows 加密。同一 Windows 账户可直接打开。
+                    无需输入密码，启动时直接进入。由 Windows 数据保护加密，同一 Windows 账户可直接打开。
                   </span>
                 </span>
                 <span className="mode-radio" />
@@ -424,7 +427,7 @@ export function LockScreen({ state, reason, error: initialError, onComplete, onR
           </div>
           <p className="auth-subtitle">
             {isDeviceMode
-              ? "此保险库由 Windows 设备保护加密。"
+              ? "此保险库已开启无密码进入，点击下方按钮使用 Windows 数据保护进入。"
               : "输入主密码以查看并复制你的验证码。"}
           </p>
 
@@ -474,7 +477,7 @@ export function LockScreen({ state, reason, error: initialError, onComplete, onR
               icon={<Icon name="unlock" size={17} />}
               data-testid="unlock-submit"
             >
-              {isDeviceMode ? "使用 Windows 保护解锁" : "解锁保险库"}
+              {isDeviceMode ? "使用 Windows 保护进入" : "解锁保险库"}
             </Button>
           </form>
 

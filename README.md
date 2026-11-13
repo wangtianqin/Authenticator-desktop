@@ -35,8 +35,9 @@
 
 ### 桌面体验
 
+- **无密码进入**：可选使用 Windows DPAPI 设备保护，启动时无需输入主密码
 - 主密码保护，或使用 Windows DPAPI 的设备保护模式
-- 自动锁定、最小化锁定、系统锁屏/休眠时锁定
+- 自动锁定、最小化锁定、系统锁屏/休眠时锁定（主密码模式）
 - 复制验证码后自动清空系统剪贴板（默认 30 秒，可关闭）
 - 浅色 / 深色 / 跟随系统主题，紧凑布局
 - 全局快捷键 `Ctrl+Shift+A` 唤起窗口
@@ -49,9 +50,9 @@
 | --- | --- |
 | ![解锁界面](docs/screenshots/lock.png) | ![扫描二维码](docs/screenshots/scanner.png) |
 
-| 添加账户 | 设置 |
+| 添加账户 | 设置：无密码进入 |
 | --- | --- |
-| ![添加账户](docs/screenshots/add-account.png) | ![设置](docs/screenshots/settings.png) |
+| ![添加账户](docs/screenshots/add-account.png) | ![无密码进入设置](docs/screenshots/passwordless.png) |
 
 | 深色主题 | 960 × 640 窄窗口 |
 | --- | --- |
@@ -61,8 +62,8 @@
 
 在交付包的 `release/` 目录中取得：
 
-- `Authenticator-Desktop-Setup-1.0.0.exe` —— 安装版，创建桌面和开始菜单快捷方式
-- `Authenticator-Desktop-1.0.0-Portable.exe` —— 便携版，无需安装
+- `Authenticator-Desktop-Setup-1.1.0.exe` —— 安装版，创建桌面和开始菜单快捷方式
+- `Authenticator-Desktop-1.1.0-Portable.exe` —— 便携版，无需安装
 
 安装包未使用商业代码签名证书。Windows SmartScreen 可能显示“未知发布者”，请选择“更多信息 → 仍要运行”，或在运行前核对文件哈希。
 
@@ -79,7 +80,7 @@
 
 ![首次设置](docs/screenshots/setup.png)
 
-1. 选择“主密码”或“Windows 设备保护”。
+1. 选择“主密码”或“Windows 设备保护（无密码进入）”。
 2. 主密码至少 8 个字符，**无法找回**。请使用密码管理器保存。
 3. 通过二维码或手动密钥添加账户。
 4. 立刻导出一份加密备份，并存放在另一台设备或可信位置。
@@ -94,12 +95,14 @@
 - 文件写入采用临时文件 + 原子重命名，并保留上一版本自动备份。
 - 连续输错主密码会触发逐步延迟；锁定时会清除由应用复制的剪贴板验证码。
 - Windows 设备保护模式使用 Electron `safeStorage`（Windows DPAPI），加密数据绑定当前 Windows 用户。
+- **无密码进入**可在设置中开启：验证器启动时自动使用当前 Windows 用户的 DPAPI 解密保险库，不再显示主密码输入界面。它不会削弱静态加密，但安全性取决于 Windows 账户本身的登录保护。
 
 ### 限制与提醒
 
 - 主密码、Windows 账户和备份密码都无法找回。忘记主密码且没有备份时，数据无法恢复。
 - 本应用是独立的开源实现，**未经过正式安全审计**。请像对待其他密码管理器一样评估风险。
-- 使用设备保护模式时，任何能登录当前 Windows 账户的人都能打开应用。
+- 使用无密码进入时，任何能登录当前 Windows 账户的人都能直接打开应用。请确保 Windows 账户有登录密码或 Windows Hello 保护。
+- 无密码进入模式下自动锁定不可用；如需自动锁定，请在设置中设置主密码并关闭无密码进入。
 - 不支持 GOST 哈希；极少数 Battle.net 历史条目会作为 8 位 TOTP 导入。标准 Battle.net 验证器通常并非标准 TOTP，无法保证兼容。
 - 浏览器插件中的网页自动填充、浏览器云同步、Drive/Dropbox/OneDrive 备份等功能与浏览器环境绑定，桌面版不提供；请使用本地加密备份迁移和恢复。
 - 验证码基于系统时间生成。请确保 Windows 时间同步正常。

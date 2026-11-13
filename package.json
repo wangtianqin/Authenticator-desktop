@@ -1,7 +1,7 @@
 {
   "name": "authenticator-desktop",
   "productName": "Authenticator Desktop",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "A secure, offline two-factor authenticator for Windows",
   "main": "electron/main.cjs",
   "author": "Authenticator Desktop",

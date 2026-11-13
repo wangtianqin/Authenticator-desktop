@@ -152,8 +152,12 @@ function Sidebar({
         <div className="sidebar-security">
           <span className="security-dot" />
           <div>
-            <strong>{securityMode === "password" ? "主密码保护" : "Windows 保护"}</strong>
-            <span>AES-256-GCM · 本地存储</span>
+            <strong>{securityMode === "password" ? "主密码保护" : "无密码进入"}</strong>
+            <span>
+              {securityMode === "password"
+                ? "AES-256-GCM · 本地存储"
+                : "Windows 数据保护 · 本地存储"}
+            </span>
           </div>
         </div>
 
@@ -381,7 +385,7 @@ export default function Shell({
             <span>本地保险库</span>
             <span className="titlebar-separator" />
             <span className="titlebar-muted">
-              {vault.meta.securityMode === "password" ? "主密码保护" : "Windows 设备保护"}
+              {vault.meta.securityMode === "password" ? "主密码保护" : "无密码进入"}
             </span>
           </div>
           <WindowControls />
